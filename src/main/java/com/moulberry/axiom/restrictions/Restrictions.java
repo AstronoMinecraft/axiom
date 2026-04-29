@@ -1,6 +1,7 @@
 package com.moulberry.axiom.restrictions;
 
 import com.moulberry.axiom.VersionHelper;
+import com.moulberry.axiom.integration.custom.CustomAxiomIntegration;
 import com.moulberry.axiom.integration.plotsquared.PlotSquaredIntegration;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
@@ -27,7 +28,7 @@ public class Restrictions {
     public EnumSet<AxiomPermission> allowedPermissions = EnumSet.of(AxiomPermission.DEFAULT);
     public EnumSet<AxiomPermission> deniedPermissions = EnumSet.noneOf(AxiomPermission.class);
     public int infiniteReachLimit = -1;
-    public Set<PlotSquaredIntegration.PlotBox> bounds = Set.of();
+    public Set<CustomAxiomIntegration.BoundingBox> bounds = Set.of();
 
     public Restrictions() {
     }
@@ -46,9 +47,9 @@ public class Restrictions {
         }
 
         friendlyByteBuf.writeInt(this.infiniteReachLimit);
-
         friendlyByteBuf.writeVarInt(this.bounds.size());
-        for (PlotSquaredIntegration.PlotBox bound : this.bounds) {
+
+        for (CustomAxiomIntegration.BoundingBox bound : this.bounds) {
             int minX = bound.min().getX();
             int minY = bound.min().getY();
             int minZ = bound.min().getZ();

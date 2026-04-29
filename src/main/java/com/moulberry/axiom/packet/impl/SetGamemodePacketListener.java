@@ -25,27 +25,6 @@ public class SetGamemodePacketListener implements PacketHandler {
 
     @Override
     public void onReceive(Player player, RegistryFriendlyByteBuf friendlyByteBuf) {
-        GameType gameType = GameType.byId(friendlyByteBuf.readByte());
 
-        AxiomPermission permission = switch (gameType) {
-            case SURVIVAL -> AxiomPermission.PLAYER_GAMEMODE_SURVIVAL;
-            case CREATIVE -> AxiomPermission.PLAYER_GAMEMODE_CREATIVE;
-            case ADVENTURE -> AxiomPermission.PLAYER_GAMEMODE_ADVENTURE;
-            case SPECTATOR -> AxiomPermission.PLAYER_GAMEMODE_SPECTATOR;
-            default -> AxiomPermission.PLAYER_GAMEMODE;
-        };
-
-        if (!this.plugin.canUseAxiom(player, permission)) {
-            return;
-        }
-
-        // Call event
-        AxiomGameModeChangeEvent gameModeChangeEvent = new AxiomGameModeChangeEvent(player, GameMode.getByValue(gameType.getId()));
-        Bukkit.getPluginManager().callEvent(gameModeChangeEvent);
-        if (gameModeChangeEvent.isCancelled()) return;
-
-        // Change gamemode
-        ((CraftPlayer)player).getHandle().setGameMode(gameType);
     }
-
 }

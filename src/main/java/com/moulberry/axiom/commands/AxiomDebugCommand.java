@@ -3,6 +3,7 @@ package com.moulberry.axiom.commands;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.moulberry.axiom.AxiomPaper;
 import com.moulberry.axiom.integration.Integration;
+import com.moulberry.axiom.integration.custom.CustomAxiomIntegration;
 import com.moulberry.axiom.integration.plotsquared.PlotSquaredIntegration;
 import com.moulberry.axiom.integration.worldguard.WorldGuardIntegration;
 import com.moulberry.axiom.restrictions.Restrictions;
@@ -96,6 +97,13 @@ public class AxiomDebugCommand {
                                                                 player.sendMessage(Component.text("canBreakBlock: " + canBreakBlock));
                                                                 return 1;
                                                             }))
+                                                            .then(Commands.literal("custom").executes(context -> {
+                                                                if (!(context.getSource().getSender() instanceof Player player)) return 0;
+                                                                Block block = player.getWorld().getBlockAt(player.getLocation());
+                                                                boolean canBreakBlock = CustomAxiomIntegration.canBreakBlock(player, block);
+                                                                player.sendMessage(Component.text("canBreakBlock: " + canBreakBlock));
+                                                                return 1;
+                                                            }))
                                                             .then(Commands.literal("worldguard").executes(context -> {
                                                                 if (!(context.getSource().getSender() instanceof Player player)) return 0;
                                                                 boolean canBreakBlock = WorldGuardIntegration.canBreakBlock(player, player.getLocation());
@@ -112,6 +120,12 @@ public class AxiomDebugCommand {
                                                             .then(Commands.literal("plotsquared").executes(context -> {
                                                                 if (!(context.getSource().getSender() instanceof Player player)) return 0;
                                                                 boolean canPlaceBlock = PlotSquaredIntegration.canPlaceBlock(player, player.getLocation());
+                                                                player.sendMessage(Component.text("canPlaceBlock: " + canPlaceBlock));
+                                                                return 1;
+                                                            }))
+                                                            .then(Commands.literal("custom").executes(context -> {
+                                                                if (!(context.getSource().getSender() instanceof Player player)) return 0;
+                                                                boolean canPlaceBlock = CustomAxiomIntegration.canPlaceBlock(player, player.getLocation());
                                                                 player.sendMessage(Component.text("canPlaceBlock: " + canPlaceBlock));
                                                                 return 1;
                                                             }))

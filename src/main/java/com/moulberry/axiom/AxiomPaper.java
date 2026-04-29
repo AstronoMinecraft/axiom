@@ -7,6 +7,8 @@ import com.moulberry.axiom.commands.AxiomMigrateCommand;
 import com.moulberry.axiom.event.AxiomCreateWorldPropertiesEvent;
 import com.moulberry.axiom.event.AxiomModifyWorldEvent;
 import com.moulberry.axiom.integration.coreprotect.CoreProtectIntegration;
+import com.moulberry.axiom.integration.custom.CustomAxiomIntegration;
+import com.moulberry.axiom.integration.custom.CustomAxiomPermissions;
 import com.moulberry.axiom.integration.plotsquared.PlotSquaredIntegration;
 import com.moulberry.axiom.listener.LuckPermsListener;
 import com.moulberry.axiom.listener.NoPhysicalTriggerListener;
@@ -514,21 +516,23 @@ public class AxiomPaper extends JavaPlugin implements Listener {
         }
 
         if (updateRestrictions) {
-            Restrictions restrictions = this.calculateRestrictions(player);
+            Restrictions restrictions = new Restrictions();
+            CustomAxiomPermissions permissionsSet = CustomAxiomIntegration.getPermissions(player);
 
-            boolean restrictionsChanged;
+            restrictions.bounds = Set.of(new CustomAxiomIntegration.BoundingBox(permissionsSet.firstBound(), permissionsSet.secondBound()));
+            restrictions.allowedPermissions = EnumSet.of(
+                    AxiomPermission.DEFAULT
+            );
 
-            if (this.playerRestrictions.containsKey(player.getUniqueId())) {
-                Restrictions oldRestrictions = this.playerRestrictions.get(player.getUniqueId());
-                restrictionsChanged = !Objects.equals(restrictions, oldRestrictions);
-            } else {
-                restrictionsChanged = true;
-            }
+            restrictions.deniedPermissions = EnumSet.of(
+                    AxiomPermission.ANNOTATION,
+                    AxiomPermission.ENTITY,
+                    AxiomPermission.PLAYER_GAMEMODE,
+                    AxiomPermission.WORLD
+            );
 
-            if (restrictionsChanged) {
-                restrictions.send(player);
-                this.playerRestrictions.put(player.getUniqueId(), restrictions);
-            }
+            restrictions.send(player);
+            this.playerRestrictions.put(player.getUniqueId(), restrictions);
         }
     }
 
@@ -538,78 +542,6 @@ public class AxiomPaper extends JavaPlugin implements Listener {
         buf.writeVarInt(max);
         byte[] bytes = ByteBufUtil.getBytes(buf);
         VersionHelper.sendCustomPayload(player, "axiom:update_available_dispatch_sends", bytes);
-    }
-
-    private Restrictions calculateRestrictions(Player player) {
-        if (player.isOp() || player.hasPermission("axiom.all")) {
-            Restrictions restrictions = new Restrictions();
-            restrictions.allowedPermissions = EnumSet.of(AxiomPermission.ALL);
-            restrictions.infiniteReachLimit = this.infiniteReachLimit;
-            return restrictions;
-        }
-
-        AxiomPermissionSet permissionSet = this.getPermissions(player);
-
-        if (permissionSet.contains(AxiomPermission.ALL)) {
-            Restrictions restrictions = new Restrictions();
-            restrictions.allowedPermissions = EnumSet.of(AxiomPermission.ALL);
-            restrictions.infiniteReachLimit = this.infiniteReachLimit;
-            return restrictions;
-        }
-
-        Set<PlotSquaredIntegration.PlotBox> bounds = Set.of();
-
-        if (!permissionSet.contains(AxiomPermission.ALLOW_COPYING_OTHER_PLOTS)) {
-            if (PlotSquaredIntegration.isPlotWorld(player.getWorld())) {
-                PlotSquaredIntegration.PlotBounds editable = PlotSquaredIntegration.getCurrentEditablePlot(player);
-                if (editable != null) {
-                    lastPlotBoundsForPlayers.put(player.getUniqueId(), editable);
-                    bounds = editable.boxes();
-                } else {
-                    PlotSquaredIntegration.PlotBounds lastPlotBounds = lastPlotBoundsForPlayers.get(player.getUniqueId());
-                    if (lastPlotBounds != null && lastPlotBounds.worldName().equals(player.getWorld().getName())) {
-                        bounds = lastPlotBounds.boxes();
-                    } else {
-                        bounds = Set.of(new PlotSquaredIntegration.PlotBox(BlockPos.ZERO, BlockPos.ZERO));
-                    }
-                }
-            }
-
-            if (bounds.size() == 1) {
-                PlotSquaredIntegration.PlotBox plotBounds = bounds.iterator().next();
-
-                int min = Integer.MIN_VALUE;
-                int max = Integer.MAX_VALUE;
-
-                if (plotBounds.min().getX() == min && plotBounds.min().getY() == min && plotBounds.min().getZ() == min &&
-                        plotBounds.max().getX() == max && plotBounds.max().getY() == max && plotBounds.max().getZ() == max) {
-                    bounds = Set.of();
-                }
-            }
-        }
-
-        EnumSet<AxiomPermission> allowed = EnumSet.noneOf(AxiomPermission.class);
-        EnumSet<AxiomPermission> denied = EnumSet.noneOf(AxiomPermission.class);
-
-        for (AxiomPermission permission : permissionSet.explicitlyAllowed) {
-            if (permission.parent != null && permissionSet.explicitlyAllowed.contains(permission.parent)) {
-                continue;
-            }
-            allowed.add(permission);
-        }
-        for (AxiomPermission permission : permissionSet.explicitlyDenied) {
-            if (permission.parent != null && permissionSet.explicitlyDenied.contains(permission.parent)) {
-                continue;
-            }
-            denied.add(permission);
-        }
-
-        Restrictions restrictions = new Restrictions();
-        restrictions.allowedPermissions = allowed;
-        restrictions.deniedPermissions = denied;
-        restrictions.infiniteReachLimit = this.infiniteReachLimit;
-        restrictions.bounds = bounds;
-        return restrictions;
     }
 
     private void registerPacketHandler(String name, PacketHandler handler, Messenger messenger, LargePayloadBehaviour behaviour,

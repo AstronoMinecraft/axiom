@@ -26,47 +26,6 @@ public class SetWorldPropertyListener implements PacketHandler {
 
     @Override
     public void onReceive(Player player, RegistryFriendlyByteBuf friendlyByteBuf) {
-        if (!this.plugin.canUseAxiom(player, AxiomPermission.WORLD_PROPERTY)) {
-            return;
-        }
 
-        Identifier id = friendlyByteBuf.readIdentifier();
-        int type = friendlyByteBuf.readVarInt();
-        byte[] data = friendlyByteBuf.readByteArray();
-        int updateId = friendlyByteBuf.readVarInt();
-
-        // Call modify world
-        if (!this.plugin.canModifyWorld(player, player.getWorld())) {
-            sendAck(player, updateId);
-            return;
-        }
-
-        // Don't allow on plot worlds
-        if (PlotSquaredIntegration.isPlotWorld(player.getWorld())) {
-            sendAck(player, updateId);
-            return;
-        }
-
-        ServerWorldPropertiesRegistry registry = AxiomPaper.PLUGIN.getOrCreateWorldProperties(player.getWorld());
-        if (registry == null) {
-            sendAck(player, updateId);
-            return;
-        }
-
-        ServerWorldPropertyHolder<?> property = registry.getById(id);
-        if (property != null && property.getType().getTypeId() == type) {
-            property.update(player, player.getWorld(), data);
-        }
-
-        sendAck(player, updateId);
     }
-
-    private void sendAck(Player player, int updateId) {
-        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
-        buf.writeVarInt(updateId);
-
-        byte[] bytes = ByteBufUtil.getBytes(buf);
-        VersionHelper.sendCustomPayload(player, "axiom:ack_world_properties", bytes);
-    }
-
 }

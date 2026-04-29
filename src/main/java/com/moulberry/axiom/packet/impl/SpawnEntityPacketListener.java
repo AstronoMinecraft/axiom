@@ -48,7 +48,7 @@ public class SpawnEntityPacketListener implements PacketHandler {
 
     @Override
     public void onReceive(Player player, RegistryFriendlyByteBuf friendlyByteBuf) {
-        if (!this.plugin.canUseAxiom(player, AxiomPermission.ENTITY_SPAWN)) {
+        /*if (!this.plugin.canUseAxiom(player, AxiomPermission.ENTITY_SPAWN)) {
             return;
         }
 
@@ -137,7 +137,7 @@ public class SpawnEntityPacketListener implements PacketHandler {
                     }
                 }
             }
-        }
+        }*/
     }
 
 }

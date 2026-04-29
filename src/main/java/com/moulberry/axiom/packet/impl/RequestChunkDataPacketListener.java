@@ -4,6 +4,7 @@ import com.moulberry.axiom.AxiomConstants;
 import com.moulberry.axiom.AxiomPaper;
 import com.moulberry.axiom.VersionHelper;
 import com.moulberry.axiom.buffer.CompressedBlockEntity;
+import com.moulberry.axiom.integration.custom.CustomAxiomIntegration;
 import com.moulberry.axiom.integration.plotsquared.PlotSquaredIntegration;
 import com.moulberry.axiom.operations.RequestChunksOperation;
 import com.moulberry.axiom.packet.PacketHandler;
