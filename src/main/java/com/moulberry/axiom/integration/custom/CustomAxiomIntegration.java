@@ -25,11 +25,6 @@ public class CustomAxiomIntegration {
     public static CustomAxiomPermissions getPermissions(Player player) {
         return CustomAxiomIntegrationImpl.getPermissions(player);
     }
-
-    public static boolean canEdit(Player player) {
-        return CustomAxiomIntegrationImpl.ge(player).canEdit();
-    }
-
     public static boolean canEdit(Player player) {
         return CustomAxiomIntegrationImpl.getPermissions(player).canEdit();
     }
